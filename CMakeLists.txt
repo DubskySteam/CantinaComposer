@@ -91,4 +91,4 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 # Plugin install
 #-------------------------------------------------------------------
 include(cmake/InstallVST3.cmake)
-install_vst3_bundle(${PROJECT_NAME})
+install_plug(${PROJECT_NAME})
