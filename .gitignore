@@ -1,0 +1,40 @@
+# Juce lib
+lib/juce
+
+# CMake build output
+/build/
+CMakeFiles/
+.cache/
+CMakeCache.txt
+compile_commands.json
+cmake_install.cmake
+Makefile
+*.cmake
+
+# VS Crap
+.vs/
+.vscode/
+*.vcxproj*
+*.user
+*.suo
+*.sdf
+*.db
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# MinGW / MSYS2 / WSL build output
+/mingw-w64/
+*~ 
+
+# Binaries
+*.exe
+*.out
+
+# JetBrains shit
+.idea/
+*.iml
+
+# Mac
+.DS_Store
