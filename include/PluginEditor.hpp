@@ -1,8 +1,8 @@
 #pragma once
 
 #include "PluginProcessor.hpp"
-#include "CustomLookAndFeel.hpp"      //<-- NEW
-#include "WaveformVisualizer.hpp"     //<-- NEW
+#include "CustomLookAndFeel.hpp"
+#include "WaveformVisualizer.hpp"
 
 class CantinaComposerAudioProcessorEditor  : public juce::AudioProcessorEditor
 {

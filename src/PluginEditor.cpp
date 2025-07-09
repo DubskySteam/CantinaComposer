@@ -12,15 +12,27 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
 
     addAndMakeVisible(presetMenu);
     presetMenu.setJustificationType(juce::Justification::centred);
+    if (auto* param = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.apvts.getParameter("PRESET")))
+    {
+        int id = 1;
+        for (const auto& choice : param->choices)
+            presetMenu.addItem(choice, id++);
+    }
     presetAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.apvts, "PRESET", presetMenu);
-    
+
     addAndMakeVisible(presetLabel);
     presetLabel.setText("Instrument Preset", juce::dontSendNotification);
     presetLabel.setJustificationType(juce::Justification::centred);
     presetLabel.attachToComponent(&presetMenu, false);
-    
+     
     addAndMakeVisible(waveMenu);
     waveMenu.setJustificationType(juce::Justification::centred);
+    if (auto* param = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.apvts.getParameter("WAVE")))
+    {
+        int id = 1;
+        for (const auto& choice : param->choices)
+            waveMenu.addItem(choice, id++);
+    }
     waveAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.apvts, "WAVE", waveMenu);
 
     addAndMakeVisible(waveLabel);
