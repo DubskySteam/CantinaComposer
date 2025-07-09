@@ -42,8 +42,8 @@ cpmaddpackage(
 juce_add_plugin(
   ${PROJECT_NAME}
   COMPANY_NAME "CantinaComposer"
-  IS_SYNTH FALSE
-  NEEDS_MIDI_INPUT FALSE
+  IS_SYNTH TRUE
+  NEEDS_MIDI_INPUT TRUE
   NEEDS_MIDI_OUTPUT FALSE
   PLUGIN_MANUFACTURER_CODE Nnja
   PLUGIN_CODE Nnja
@@ -58,6 +58,9 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         src/PluginEditor.cpp
         src/PluginProcessor.cpp
+        src/SynthVoice.cpp
+        src/UI/CustomLookAndFeel.cpp
+        src/UI/WaveformVisualizer.cpp
 )
 
 #-------------------------------------------------------------------
@@ -66,6 +69,7 @@ target_sources(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/UI
 )
 
 #-------------------------------------------------------------------
