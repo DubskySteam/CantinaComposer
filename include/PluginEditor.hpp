@@ -1,22 +1,42 @@
 #pragma once
 
 #include "PluginProcessor.hpp"
+#include <juce_gui_basics/juce_gui_basics.h>
+
+class WaveformVisualizer;
+class CantinaLookAndFeel;
 
 //==============================================================================
-class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
+class CantinaComposerAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    explicit AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor&);
-    ~AudioPluginAudioProcessorEditor() override;
+    explicit CantinaComposerAudioProcessorEditor (CantinaComposerAudioProcessor&);
+    ~CantinaComposerAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    AudioPluginAudioProcessor& processorRef;
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using SliderAttachment = APVTS::SliderAttachment;
+    using ComboBoxAttachment = APVTS::ComboBoxAttachment;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
+    CantinaComposerAudioProcessor& audioProcessor;
+    
+    std::unique_ptr<WaveformVisualizer> waveformVisualizer;
+    std::unique_ptr<CantinaLookAndFeel> lookAndFeel;
+
+    juce::ComboBox presetMenu;
+    juce::ComboBox waveMenu;
+    
+    juce::Slider attackSlider, decaySlider, sustainSlider, releaseSlider;
+    juce::Label presetLabel, waveLabel, adsrLabel;
+    juce::Label attackLabel, decayLabel, sustainLabel, releaseLabel;
+
+    std::unique_ptr<ComboBoxAttachment> presetAttachment;
+    std::unique_ptr<ComboBoxAttachment> waveAttachment;
+    std::unique_ptr<SliderAttachment> attackAttachment, decayAttachment, sustainAttachment, releaseAttachment;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CantinaComposerAudioProcessorEditor)
 };
