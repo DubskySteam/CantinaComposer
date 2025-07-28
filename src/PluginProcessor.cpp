@@ -1,188 +1,148 @@
 #include "PluginProcessor.hpp"
 #include "PluginEditor.hpp"
 
-//==============================================================================
-AudioPluginAudioProcessor::AudioPluginAudioProcessor()
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+CantinaComposerAudioProcessor::CantinaComposerAudioProcessor()
+    : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+      apvts (*this, nullptr, "Parameters", createParameterLayout())
 {
-}
+    apvts.state.addListener(this);
+    synth.addSound(new SynthSound());
 
-AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
-{
-}
-
-//==============================================================================
-const juce::String AudioPluginAudioProcessor::getName() const
-{
-    return JucePlugin_Name;
-}
-
-bool AudioPluginAudioProcessor::acceptsMidi() const
-{
-   #if JucePlugin_WantsMidiInput
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-bool AudioPluginAudioProcessor::producesMidi() const
-{
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-bool AudioPluginAudioProcessor::isMidiEffect() const
-{
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-double AudioPluginAudioProcessor::getTailLengthSeconds() const
-{
-    return 0.0;
-}
-
-int AudioPluginAudioProcessor::getNumPrograms()
-{
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
-}
-
-int AudioPluginAudioProcessor::getCurrentProgram()
-{
-    return 0;
-}
-
-void AudioPluginAudioProcessor::setCurrentProgram (int index)
-{
-    juce::ignoreUnused (index);
-}
-
-const juce::String AudioPluginAudioProcessor::getProgramName (int index)
-{
-    juce::ignoreUnused (index);
-    return {};
-}
-
-void AudioPluginAudioProcessor::changeProgramName (int index, const juce::String& newName)
-{
-    juce::ignoreUnused (index, newName);
-}
-
-//==============================================================================
-void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
-{
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
-}
-
-void AudioPluginAudioProcessor::releaseResources()
-{
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
-}
-
-bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
-{
-  #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
-    return true;
-  #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
-        return false;
-
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-   #endif
-
-    return true;
-  #endif
-}
-
-void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
-                                              juce::MidiBuffer& midiMessages)
-{
-    juce::ignoreUnused (midiMessages);
-
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    for (int i = 0; i < 8; ++i)
     {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
-        // ..do something to the data...
+        synth.addVoice(new SynthVoice(apvts));
     }
 }
 
-//==============================================================================
-bool AudioPluginAudioProcessor::hasEditor() const
+CantinaComposerAudioProcessor::~CantinaComposerAudioProcessor()
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    apvts.state.removeListener(this);
 }
 
-juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
+juce::AudioProcessorValueTreeState::ParameterLayout CantinaComposerAudioProcessor::createParameterLayout()
 {
-    return new AudioPluginAudioProcessorEditor (*this);
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+    juce::StringArray waveChoices = { "Sine", "Saw", "Square" };
+    juce::StringArray presetChoices = { "Kloo Horn (Flute)", "Fanfar (Steel Drum)", "Gasan String-drum", "Ommni Box (Clarinet)" };
+
+    params.push_back (std::make_unique<juce::AudioParameterChoice> ("PRESET", "Preset", presetChoices, 0));
+    params.push_back (std::make_unique<juce::AudioParameterChoice> ("WAVE", "Waveform", waveChoices, 0));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("ATTACK", "Attack", juce::NormalisableRange<float>(0.01f, 1.0f, 0.001f, 0.3f), 0.1f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("DECAY", "Decay", juce::NormalisableRange<float>(0.01f, 1.0f, 0.001f, 0.3f), 0.2f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("SUSTAIN", "Sustain", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.8f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("RELEASE", "Release", juce::NormalisableRange<float>(0.01f, 3.0f, 0.001f, 0.3f), 0.4f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("FILTER_FREQ", "Frequency", juce::NormalisableRange<float>(20.0f, 20000.0f, 1.0f, 0.3f), 20000.0f));
+    params.push_back (std::make_unique<juce::AudioParameterFloat> ("BASS_GAIN", "Bass", juce::NormalisableRange<float>(-24.0f, 24.0f, 0.1f), 0.0f)); 
+    return { params.begin(), params.end() };
 }
 
-//==============================================================================
-void AudioPluginAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void CantinaComposerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
-    juce::ignoreUnused (destData);
+    synth.setCurrentPlaybackSampleRate(sampleRate);
+    
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i)))
+        {
+            voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+        }
+    }
+    
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumOutputChannels();
+    filterChain.prepare(spec);
+    
+    updateFilters();
+
+    if (auto* presetParam = apvts.getRawParameterValue("PRESET"))
+    {
+        setPreset(static_cast<int>(presetParam->load()));
+    }
 }
 
-void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void CantinaComposerAudioProcessor::releaseResources() {}
+
+void CantinaComposerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
-    juce::ignoreUnused (data, sizeInBytes);
+    juce::ScopedNoDenormals noDenormals;
+    buffer.clear();
+    
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+
+    updateFilters();
+    
+    juce::dsp::AudioBlock<float> block (buffer);
+    filterChain.process(juce::dsp::ProcessContextReplacing<float>(block));
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
+void CantinaComposerAudioProcessor::updateFilters()
+{
+    auto freq = apvts.getRawParameterValue("FILTER_FREQ")->load();
+    auto bassGain = apvts.getRawParameterValue("BASS_GAIN")->load();
+
+    *filterChain.get<0>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowPass(getSampleRate(), freq);
+    
+    *filterChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(getSampleRate(), 150.0f, 1.0f, juce::Decibels::decibelsToGain(bassGain));
+}
+
+void CantinaComposerAudioProcessor::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
+{
+    if (property == juce::Identifier("PRESET"))
+    {
+        setPreset(static_cast<int>(tree.getProperty(property)));
+    }
+}
+
+void CantinaComposerAudioProcessor::setPreset(int presetIndex)
+{
+    auto* waveParam = apvts.getParameter("WAVE");
+    auto* attackParam = apvts.getParameter("ATTACK");
+    auto* decayParam = apvts.getParameter("DECAY");
+    auto* sustainParam = apvts.getParameter("SUSTAIN");
+    auto* releaseParam = apvts.getParameter("RELEASE");
+
+    if (!waveParam || !attackParam || !decayParam || !sustainParam || !releaseParam)
+    {
+        jassertfalse;
+        return;
+    }
+
+    auto setParam = [](juce::RangedAudioParameter* param, float value) {
+        param->setValueNotifyingHost(param->getNormalisableRange().convertTo0to1(value));
+    };
+
+    switch (presetIndex)
+    {
+        case 0: waveParam->setValueNotifyingHost(0); setParam(attackParam, 0.05f); setParam(decayParam, 0.2f); setParam(sustainParam, 0.9f); setParam(releaseParam, 0.3f); break;
+        case 1: waveParam->setValueNotifyingHost(0); setParam(attackParam, 0.01f); setParam(decayParam, 0.4f); setParam(sustainParam, 0.1f); setParam(releaseParam, 0.2f); break;
+        case 2: waveParam->setValueNotifyingHost(1); setParam(attackParam, 0.01f); setParam(decayParam, 0.3f); setParam(sustainParam, 0.3f); setParam(releaseParam, 0.5f); break;
+        case 3: waveParam->setValueNotifyingHost(2); setParam(attackParam, 0.1f);  setParam(decayParam, 0.1f); setParam(sustainParam, 1.0f); setParam(releaseParam, 0.2f); break;
+    }
+}
+
+juce::AudioProcessorEditor* CantinaComposerAudioProcessor::createEditor()
+{
+    return new CantinaComposerAudioProcessorEditor (*this);
+}
+
+void CantinaComposerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+{
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, destData);
+}
+
+void CantinaComposerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+    std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName (apvts.state.getType()))
+            apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
+}
+
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new AudioPluginAudioProcessor();
+    return new CantinaComposerAudioProcessor();
 }

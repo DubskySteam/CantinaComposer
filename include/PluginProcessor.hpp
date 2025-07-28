@@ -1,48 +1,52 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "SynthVoice.hpp"
 
-//==============================================================================
-class AudioPluginAudioProcessor final : public juce::AudioProcessor
+class CantinaComposerAudioProcessor  : public juce::AudioProcessor,
+                                       public juce::ValueTree::Listener
 {
 public:
-    //==============================================================================
-    AudioPluginAudioProcessor();
-    ~AudioPluginAudioProcessor() override;
+    CantinaComposerAudioProcessor();
+    ~CantinaComposerAudioProcessor() override;
 
-    //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
-
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    using AudioProcessor::processBlock;
-
-    //==============================================================================
+    
     juce::AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override;
+    bool hasEditor() const override { return true; }
 
-    //==============================================================================
-    const juce::String getName() const override;
-
-    bool acceptsMidi() const override;
-    bool producesMidi() const override;
-    bool isMidiEffect() const override;
-    double getTailLengthSeconds() const override;
-
-    //==============================================================================
-    int getNumPrograms() override;
-    int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const juce::String getProgramName (int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
-
-    //==============================================================================
+    const juce::String getName() const override { return JucePlugin_Name; }
+    bool acceptsMidi() const override { return JucePlugin_WantsMidiInput; }
+    bool producesMidi() const override { return JucePlugin_ProducesMidiOutput; }
+    bool isMidiEffect() const override { return false; }
+    double getTailLengthSeconds() const override { return 0.0; }
+    
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 0; }
+    void setCurrentProgram (int) override {}
+    const juce::String getProgramName (int) override { return {}; }
+    void changeProgramName (int, const juce::String&) override {}
+    
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    juce::AudioProcessorValueTreeState apvts;
 
 private:
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
+    void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
+    void setPreset(int presetIndex);
+
+    juce::Synthesiser synth;
+
+    using Filter = juce::dsp::IIR::Filter<float>;
+    using FilterChain = juce::dsp::ProcessorChain<Filter, Filter>;
+    FilterChain filterChain;
+    
+    void updateFilters();
+
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CantinaComposerAudioProcessor)
 };

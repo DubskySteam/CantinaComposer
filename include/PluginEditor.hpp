@@ -30,5 +30,9 @@ private:
     std::unique_ptr<ComboBoxAttachment> presetAttachment, waveAttachment;
     std::unique_ptr<SliderAttachment> attackAttachment, decayAttachment, sustainAttachment, releaseAttachment;
 
+    juce::Slider freqSlider, bassSlider;
+    juce::Label freqLabel, bassLabel;
+    std::unique_ptr<SliderAttachment> freqAttachment, bassAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CantinaComposerAudioProcessorEditor)
 };

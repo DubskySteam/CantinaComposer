@@ -65,6 +65,24 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
     sustainAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "SUSTAIN", sustainSlider);
     releaseAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "RELEASE", releaseSlider);
     
+    auto setupHorizontalSlider = [&](juce::Slider& slider, juce::Label& label, const juce::String& text)
+    {
+        addAndMakeVisible(slider);
+        slider.setSliderStyle(juce::Slider::LinearHorizontal);
+        slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+        
+        addAndMakeVisible(label);
+        label.setText(text, juce::dontSendNotification);
+        label.setJustificationType(juce::Justification::centred);
+        label.attachToComponent(&slider, true); // Attach label to the left
+    };
+
+    setupHorizontalSlider(freqSlider, freqLabel, "Frequency");
+    setupHorizontalSlider(bassSlider, bassLabel, "Bass");
+
+    freqAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "FILTER_FREQ", freqSlider);
+    bassAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "BASS_GAIN", bassSlider);
+    
     setSize (520, 320);
 }
 
@@ -96,7 +114,7 @@ void CantinaComposerAudioProcessorEditor::resized()
     
     bounds.removeFromTop(10);
     
-    auto adsrArea = bounds;
+    auto adsrArea = bounds.removeFromTop(100);
     adsrLabel.setBounds(adsrArea.removeFromTop(20));
     
     auto sliderWidth = adsrArea.getWidth() / 4;
@@ -104,4 +122,13 @@ void CantinaComposerAudioProcessorEditor::resized()
     decaySlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
     sustainSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
     releaseSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
+
+    bounds.removeFromTop(20);
+    auto bottomArea = bounds;
+    
+    auto freqArea = bottomArea.removeFromTop(bottomArea.getHeight() / 2);
+    freqSlider.setBounds(freqArea.withLeft(80).reduced(10));
+
+    auto bassArea = bottomArea;
+    bassSlider.setBounds(bassArea.withLeft(80).reduced(10));
 }
