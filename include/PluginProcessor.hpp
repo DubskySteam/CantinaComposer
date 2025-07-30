@@ -44,6 +44,7 @@ private:
     using FilterChain = juce::dsp::ProcessorChain<Filter, Filter>;
     FilterChain filterChain;
     
+    juce::LinearSmoothedValue<float> smoothedFilterFreq;
     void updateFilters();
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

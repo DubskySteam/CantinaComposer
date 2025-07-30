@@ -53,6 +53,7 @@ void CantinaComposerAudioProcessor::prepareToPlay (double sampleRate, int sample
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumOutputChannels();
     filterChain.prepare(spec);
+    smoothedFilterFreq.reset(sampleRate, 0.05);
     
     updateFilters();
 
@@ -80,9 +81,10 @@ void CantinaComposerAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
 void CantinaComposerAudioProcessor::updateFilters()
 {
     auto freq = apvts.getRawParameterValue("FILTER_FREQ")->load();
+    smoothedFilterFreq.setTargetValue(freq);
     auto bassGain = apvts.getRawParameterValue("BASS_GAIN")->load();
 
-    *filterChain.get<0>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowPass(getSampleRate(), freq);
+    *filterChain.get<0>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowPass(getSampleRate(), smoothedFilterFreq.getNextValue());
     
     *filterChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(getSampleRate(), 150.0f, 1.0f, juce::Decibels::decibelsToGain(bassGain));
 }
