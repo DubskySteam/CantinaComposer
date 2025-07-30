@@ -85,7 +85,7 @@ void SynthVoice::updateWaveform()
     {
         case 0: osc.initialise([](float x) { return std::sin(x); }); break;
         case 1: osc.initialise([](float x) { return juce::jmap(x, 0.0f, juce::MathConstants<float>::twoPi, -1.0f, 1.0f); }); break;
-        case 2: osc.initialise([](float x) { return x < juce::MathConstants<float>::pi ? 1.0f : -1.0f; }); break;
+        case 2: osc.initialise([](float x) { return std::copysign(1.0f, std::sin(x)); }); break;
         default: osc.initialise([](float x) { return 0.0f; }); break;
     }
     lastWaveType = waveType;
