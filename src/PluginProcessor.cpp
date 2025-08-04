@@ -104,8 +104,10 @@ void CantinaComposerAudioProcessor::setPreset(int presetIndex)
     auto* decayParam = apvts.getParameter("DECAY");
     auto* sustainParam = apvts.getParameter("SUSTAIN");
     auto* releaseParam = apvts.getParameter("RELEASE");
+    auto* freqParam = apvts.getParameter("FILTER_FREQ");
+    auto* bassParam = apvts.getParameter("BASS_GAIN");
 
-    if (!waveParam || !attackParam || !decayParam || !sustainParam || !releaseParam)
+    if (!waveParam || !attackParam || !decayParam || !sustainParam || !releaseParam || !freqParam || !bassParam)
     {
         jassertfalse;
         return;
@@ -117,10 +119,45 @@ void CantinaComposerAudioProcessor::setPreset(int presetIndex)
 
     switch (presetIndex)
     {
-        case 0: waveParam->setValueNotifyingHost(0); setParam(attackParam, 0.05f); setParam(decayParam, 0.2f); setParam(sustainParam, 0.9f); setParam(releaseParam, 0.3f); break;
-        case 1: waveParam->setValueNotifyingHost(0); setParam(attackParam, 0.01f); setParam(decayParam, 0.4f); setParam(sustainParam, 0.1f); setParam(releaseParam, 0.2f); break;
-        case 2: waveParam->setValueNotifyingHost(1); setParam(attackParam, 0.01f); setParam(decayParam, 0.3f); setParam(sustainParam, 0.3f); setParam(releaseParam, 0.5f); break;
-        case 3: waveParam->setValueNotifyingHost(2); setParam(attackParam, 0.1f);  setParam(decayParam, 0.1f); setParam(sustainParam, 1.0f); setParam(releaseParam, 0.2f); break;
+        case 0:
+            waveParam->setValueNotifyingHost(0);
+            setParam(attackParam, 0.08f);
+            setParam(decayParam, 0.3f);
+            setParam(sustainParam, 0.8f);
+            setParam(releaseParam, 0.4f);
+            setParam(freqParam, 8000.0f);
+            setParam(bassParam, -6.0f);
+            break;
+
+        case 1:
+            waveParam->setValueNotifyingHost(0);
+            setParam(attackParam, 0.01f);
+            setParam(decayParam, 0.5f);
+            setParam(sustainParam, 0.0f);
+            setParam(releaseParam, 0.3f);
+            setParam(freqParam, 12000.0f); 
+            setParam(bassParam, 0.0f);
+            break;
+
+        case 2:
+            waveParam->setValueNotifyingHost(1);
+            setParam(attackParam, 0.02f);
+            setParam(decayParam, 0.6f);
+            setParam(sustainParam, 0.5f);
+            setParam(releaseParam, 0.8f);
+            setParam(freqParam, 6500.0f);
+            setParam(bassParam, 3.0f);
+            break;
+
+        case 3:
+            waveParam->setValueNotifyingHost(2);
+            setParam(attackParam, 0.12f);
+            setParam(decayParam, 0.1f);
+            setParam(sustainParam, 1.0f);
+            setParam(releaseParam, 0.2f);
+            setParam(freqParam, 4000.0f);
+            setParam(bassParam, -2.0f);
+            break;
     }
 }
 
