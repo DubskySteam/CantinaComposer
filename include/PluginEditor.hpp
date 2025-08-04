@@ -4,7 +4,8 @@
 #include "CustomLookAndFeel.hpp"
 #include "WaveformVisualizer.hpp"
 
-class CantinaComposerAudioProcessorEditor  : public juce::AudioProcessorEditor
+class CantinaComposerAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                            public juce::ComboBox::Listener
 {
 public:
     explicit CantinaComposerAudioProcessorEditor (CantinaComposerAudioProcessor&);
@@ -12,6 +13,7 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
 private:
     using APVTS = juce::AudioProcessorValueTreeState;

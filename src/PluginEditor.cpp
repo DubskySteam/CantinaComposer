@@ -24,6 +24,7 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
     presetLabel.setText("Instrument Preset", juce::dontSendNotification);
     presetLabel.setJustificationType(juce::Justification::centred);
     presetLabel.attachToComponent(&presetMenu, false);
+    presetMenu.addListener(this);
      
     addAndMakeVisible(waveMenu);
     waveMenu.setJustificationType(juce::Justification::centred);
@@ -90,12 +91,26 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
 
 CantinaComposerAudioProcessorEditor::~CantinaComposerAudioProcessorEditor()
 {
+    presetMenu.removeListener(this);
     setLookAndFeel(nullptr);
 }
 
 void CantinaComposerAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour(0xff222222));
+}
+
+void CantinaComposerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
+{
+    if (comboBoxThatHasChanged == &presetMenu)
+    {
+        const int presetIndex = presetMenu.getSelectedId() - 1;
+        
+        if (presetIndex >= 0)
+        {
+            audioProcessor.setPreset(presetIndex);
+        }
+    }
 }
 
 void CantinaComposerAudioProcessorEditor::resized()

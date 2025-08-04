@@ -3,8 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "SynthVoice.hpp"
 
-class CantinaComposerAudioProcessor  : public juce::AudioProcessor,
-                                       public juce::ValueTree::Listener
+class CantinaComposerAudioProcessor  : public juce::AudioProcessor
 {
 public:
     CantinaComposerAudioProcessor();
@@ -33,10 +32,9 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     juce::AudioProcessorValueTreeState apvts;
+    void setPreset(int presetIndex);
 
 private:
-    void valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property) override;
-    void setPreset(int presetIndex);
 
     juce::Synthesiser synth;
 

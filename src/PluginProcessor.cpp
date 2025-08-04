@@ -5,18 +5,13 @@ CantinaComposerAudioProcessor::CantinaComposerAudioProcessor()
     : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
       apvts (*this, nullptr, "Parameters", createParameterLayout())
 {
-    apvts.state.addListener(this);
     synth.addSound(new SynthSound());
-
     for (int i = 0; i < 8; ++i)
-    {
         synth.addVoice(new SynthVoice(apvts));
-    }
 }
 
 CantinaComposerAudioProcessor::~CantinaComposerAudioProcessor()
 {
-    apvts.state.removeListener(this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout CantinaComposerAudioProcessor::createParameterLayout()
@@ -90,13 +85,7 @@ void CantinaComposerAudioProcessor::updateFilters()
     *filterChain.get<1>().coefficients = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(getSampleRate(), 150.0f, 1.0f, juce::Decibels::decibelsToGain(bassGain));
 }
 
-void CantinaComposerAudioProcessor::valueTreePropertyChanged(juce::ValueTree& tree, const juce::Identifier& property)
-{
-    if (property == juce::Identifier("PRESET"))
-    {
-        setPreset(static_cast<int>(tree.getProperty(property)));
-    }
-}
+
 
 void CantinaComposerAudioProcessor::setPreset(int presetIndex)
 {
@@ -182,9 +171,18 @@ void CantinaComposerAudioProcessor::getStateInformation (juce::MemoryBlock& dest
 void CantinaComposerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
-    if (xmlState.get() != nullptr)
+    if (xmlState != nullptr)
+    {
         if (xmlState->hasTagName (apvts.state.getType()))
+        {
             apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
+
+            if (auto* presetParam = apvts.getRawParameterValue("PRESET"))
+            {
+                setPreset(static_cast<int>(presetParam->load()));
+            }
+        }
+    }
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
