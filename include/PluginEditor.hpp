@@ -34,5 +34,10 @@ private:
     juce::Label freqLabel, bassLabel;
     std::unique_ptr<SliderAttachment> freqAttachment, bassAttachment;
 
+    juce::Slider pitchSlider;
+    juce::Label pitchLabel;
+    std::unique_ptr<SliderAttachment> pitchAttachment;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CantinaComposerAudioProcessorEditor)
 };

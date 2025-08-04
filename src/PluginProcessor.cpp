@@ -33,6 +33,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CantinaComposerAudioProcesso
     params.push_back (std::make_unique<juce::AudioParameterFloat> ("RELEASE", "Release", juce::NormalisableRange<float>(0.01f, 3.0f, 0.001f, 0.3f), 0.4f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> ("FILTER_FREQ", "Frequency", juce::NormalisableRange<float>(20.0f, 20000.0f, 1.0f, 0.3f), 20000.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> ("BASS_GAIN", "Bass", juce::NormalisableRange<float>(-24.0f, 24.0f, 0.1f), 0.0f)); 
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("PITCH", "Pitch", juce::NormalisableRange<float>(-12.0f, 12.0f, 0.1f), 0.0f));
     return { params.begin(), params.end() };
 }
 
@@ -99,7 +100,8 @@ void CantinaComposerAudioProcessor::valueTreePropertyChanged(juce::ValueTree& tr
 
 void CantinaComposerAudioProcessor::setPreset(int presetIndex)
 {
-    auto* waveParam = apvts.getParameter("WAVE");
+
+    auto* waveParam = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("WAVE"));
     auto* attackParam = apvts.getParameter("ATTACK");
     auto* decayParam = apvts.getParameter("DECAY");
     auto* sustainParam = apvts.getParameter("SUSTAIN");
@@ -107,20 +109,23 @@ void CantinaComposerAudioProcessor::setPreset(int presetIndex)
     auto* freqParam = apvts.getParameter("FILTER_FREQ");
     auto* bassParam = apvts.getParameter("BASS_GAIN");
 
+
     if (!waveParam || !attackParam || !decayParam || !sustainParam || !releaseParam || !freqParam || !bassParam)
     {
         jassertfalse;
         return;
     }
 
+
     auto setParam = [](juce::RangedAudioParameter* param, float value) {
         param->setValueNotifyingHost(param->getNormalisableRange().convertTo0to1(value));
     };
 
+
     switch (presetIndex)
     {
         case 0:
-            waveParam->setValueNotifyingHost(0);
+            *waveParam = 0;
             setParam(attackParam, 0.08f);
             setParam(decayParam, 0.3f);
             setParam(sustainParam, 0.8f);
@@ -130,17 +135,17 @@ void CantinaComposerAudioProcessor::setPreset(int presetIndex)
             break;
 
         case 1:
-            waveParam->setValueNotifyingHost(0);
+            *waveParam = 0;
             setParam(attackParam, 0.01f);
             setParam(decayParam, 0.5f);
             setParam(sustainParam, 0.0f);
             setParam(releaseParam, 0.3f);
-            setParam(freqParam, 12000.0f); 
+            setParam(freqParam, 12000.0f);
             setParam(bassParam, 0.0f);
             break;
 
         case 2:
-            waveParam->setValueNotifyingHost(1);
+            *waveParam = 1;
             setParam(attackParam, 0.02f);
             setParam(decayParam, 0.6f);
             setParam(sustainParam, 0.5f);
@@ -149,8 +154,8 @@ void CantinaComposerAudioProcessor::setPreset(int presetIndex)
             setParam(bassParam, 3.0f);
             break;
 
-        case 3:
-            waveParam->setValueNotifyingHost(2);
+        case 3: 
+            *waveParam = 2; 
             setParam(attackParam, 0.12f);
             setParam(decayParam, 0.1f);
             setParam(sustainParam, 1.0f);
@@ -160,6 +165,7 @@ void CantinaComposerAudioProcessor::setPreset(int presetIndex)
             break;
     }
 }
+
 
 juce::AudioProcessorEditor* CantinaComposerAudioProcessor::createEditor()
 {

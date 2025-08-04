@@ -74,16 +74,18 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
         addAndMakeVisible(label);
         label.setText(text, juce::dontSendNotification);
         label.setJustificationType(juce::Justification::centred);
-        label.attachToComponent(&slider, true); // Attach label to the left
+        label.attachToComponent(&slider, true);
     };
 
     setupHorizontalSlider(freqSlider, freqLabel, "Frequency");
     setupHorizontalSlider(bassSlider, bassLabel, "Bass");
+    setupHorizontalSlider(pitchSlider, pitchLabel, "Pitch");
 
     freqAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "FILTER_FREQ", freqSlider);
     bassAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "BASS_GAIN", bassSlider);
+    pitchAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "PITCH", pitchSlider);
     
-    setSize (520, 320);
+    setSize (720, 720);
 }
 
 CantinaComposerAudioProcessorEditor::~CantinaComposerAudioProcessorEditor()
@@ -99,23 +101,15 @@ void CantinaComposerAudioProcessorEditor::paint (juce::Graphics& g)
 void CantinaComposerAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds().reduced(10);
-    
-    auto topArea = bounds.removeFromTop(80);
-    auto presetArea = topArea.removeFromLeft(topArea.getWidth() / 2);
-    auto waveArea = topArea;
-    
-    presetMenu.setBounds(presetArea.reduced(10, 20));
-    waveMenu.setBounds(waveArea.reduced(10, 20));
-    
-    bounds.removeFromTop(10);
-    
-    auto visualizerArea = bounds.removeFromTop(80);
-    waveformVisualizer->setBounds(visualizerArea);
-    
-    bounds.removeFromTop(10);
-    
-    auto adsrArea = bounds.removeFromTop(100);
-    adsrLabel.setBounds(adsrArea.removeFromTop(20));
+
+    auto topRow = bounds.removeFromTop(40);
+    presetMenu.setBounds(topRow.removeFromLeft(topRow.getWidth() / 2).reduced(5));
+    waveMenu.setBounds(topRow.reduced(5));
+
+    bounds.removeFromTop(20);
+
+    auto adsrArea = bounds.removeFromTop(120);
+    adsrLabel.setBounds(adsrArea.removeFromTop(25));
     
     auto sliderWidth = adsrArea.getWidth() / 4;
     attackSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
@@ -124,11 +118,21 @@ void CantinaComposerAudioProcessorEditor::resized()
     releaseSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
 
     bounds.removeFromTop(20);
-    auto bottomArea = bounds;
-    
-    auto freqArea = bottomArea.removeFromTop(bottomArea.getHeight() / 2);
-    freqSlider.setBounds(freqArea.withLeft(80).reduced(10));
 
-    auto bassArea = bottomArea;
-    bassSlider.setBounds(bassArea.withLeft(80).reduced(10));
+    auto bottomArea = bounds;
+    auto horizontalSliderHeight = 50;
+    auto labelWidth = 80;
+
+    auto freqArea = bottomArea.removeFromTop(horizontalSliderHeight);
+    freqSlider.setBounds(freqArea.withLeft(labelWidth).reduced(5, 0));
+
+    auto bassArea = bottomArea.removeFromTop(horizontalSliderHeight);
+    bassSlider.setBounds(bassArea.withLeft(labelWidth).reduced(5, 0));
+    
+    auto pitchArea = bottomArea.removeFromTop(horizontalSliderHeight);
+    pitchSlider.setBounds(pitchArea.withLeft(labelWidth).reduced(5, 0));
+
+
+    bottomArea.removeFromTop(10);
+    waveformVisualizer->setBounds(bottomArea);
 }
