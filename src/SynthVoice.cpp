@@ -46,7 +46,8 @@ void SynthVoice::stopNote(float, bool allowTailOff)
 void SynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
     if (!isPrepared || !isVoiceActive()) return;
-            
+
+    updateADSR(); 
     updateWaveform();
 
     tempBlock.clear();
