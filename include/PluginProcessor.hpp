@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "SynthVoice.hpp"
+#include "AudioBufferQueue.hpp"
 
 class CantinaComposerAudioProcessor  : public juce::AudioProcessor
 {
@@ -33,6 +34,8 @@ public:
     
     juce::AudioProcessorValueTreeState apvts;
     void setPreset(int presetIndex);
+
+    AudioBufferQueue audioBufferQueue;
 
 private:
 

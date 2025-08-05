@@ -72,6 +72,7 @@ void CantinaComposerAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     
     juce::dsp::AudioBlock<float> block (buffer);
     filterChain.process(juce::dsp::ProcessContextReplacing<float>(block));
+    audioBufferQueue.push(buffer);
 }
 
 void CantinaComposerAudioProcessor::updateFilters()

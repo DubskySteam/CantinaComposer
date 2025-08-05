@@ -6,8 +6,8 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
 {
     lookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(lookAndFeel.get());
-    
-    waveformVisualizer = std::make_unique<WaveformVisualizer>(audioProcessor.apvts);
+
+    waveformVisualizer = std::make_unique<WaveformVisualizer>(audioProcessor.audioBufferQueue);
     addAndMakeVisible(waveformVisualizer.get());
 
     addAndMakeVisible(presetMenu);
