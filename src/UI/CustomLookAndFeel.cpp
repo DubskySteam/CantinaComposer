@@ -10,22 +10,28 @@ CustomLookAndFeel::CustomLookAndFeel()
     setColour(juce::Label::textColourId, juce::Colours::lightgrey);
 }
 
-void CustomLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
-                                         const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider& slider)
+void CustomLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int width, int height, float sliderPos,
+                                         const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider &slider)
 {
-    auto radius = (float) juce::jmin (width / 2, height / 2) - 4.0f;
-    auto centreX = (float) x + (float) width  * 0.5f;
-    auto centreY = (float) y + (float) height * 0.5f;
+    auto radius = (float)juce::jmin(width / 2, height / 2) - 10.0f;
+    auto centreX = (float)x + (float)width * 0.5f;
+    auto centreY = (float)y + (float)height * 0.5f;
     auto rx = centreX - radius;
     auto ry = centreY - radius;
     auto rw = radius * 2.0f;
     auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
-    g.setColour (slider.findColour(juce::Slider::rotarySliderFillColourId));
-    juce::Path p;
-    p.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, angle, 0.6);
-    g.fillPath (p);
+    juce::Path glowPath;
+    glowPath.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.6);
 
-    g.setColour (slider.findColour(juce::Slider::rotarySliderOutlineColourId));
-    g.drawEllipse (rx, ry, rw, rw, 2.0f);
+    juce::DropShadow shadow(juce::Colours::red.withAlpha(0.7f), 10, {});
+    shadow.drawForPath(g, glowPath);
+
+    g.setColour(slider.findColour(juce::Slider::rotarySliderFillColourId));
+    juce::Path p;
+    p.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.6);
+    g.fillPath(p);
+
+    g.setColour(slider.findColour(juce::Slider::rotarySliderOutlineColourId));
+    g.drawEllipse(rx, ry, rw, rw, 2.0f);
 }

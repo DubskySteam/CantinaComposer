@@ -7,8 +7,17 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
     lookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(lookAndFeel.get());
 
-    waveformVisualizer = std::make_unique<WaveformVisualizer>(audioProcessor.audioBufferQueue);
-    addAndMakeVisible(waveformVisualizer.get());
+    addAndMakeVisible(titleLabel);
+    titleLabel.setText("CantinaComposer", juce::dontSendNotification);
+    titleLabel.setFont(juce::Font(24.0f, juce::Font::bold));
+    titleLabel.setJustificationType(juce::Justification::centred);
+
+    waveformVisualizerLeft = std::make_unique<WaveformVisualizer>(audioProcessor.audioBufferQueue);
+    addAndMakeVisible(waveformVisualizerLeft.get());
+    
+    waveformVisualizerRight = std::make_unique<WaveformVisualizer>(audioProcessor.audioBufferQueue);
+    addAndMakeVisible(waveformVisualizerRight.get());
+
 
     addAndMakeVisible(presetMenu);
     presetMenu.setJustificationType(juce::Justification::centred);
@@ -19,13 +28,8 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
             presetMenu.addItem(choice, id++);
     }
     presetAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.apvts, "PRESET", presetMenu);
-
-    addAndMakeVisible(presetLabel);
-    presetLabel.setText("Instrument Preset", juce::dontSendNotification);
-    presetLabel.setJustificationType(juce::Justification::centred);
-    presetLabel.attachToComponent(&presetMenu, false);
     presetMenu.addListener(this);
-     
+
     addAndMakeVisible(waveMenu);
     waveMenu.setJustificationType(juce::Justification::centred);
     if (auto* param = dynamic_cast<juce::AudioParameterChoice*>(audioProcessor.apvts.getParameter("WAVE")))
@@ -36,57 +40,47 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
     }
     waveAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.apvts, "WAVE", waveMenu);
 
-    addAndMakeVisible(waveLabel);
-    waveLabel.setText("Waveform", juce::dontSendNotification);
-    waveLabel.setJustificationType(juce::Justification::centred);
-    waveLabel.attachToComponent(&waveMenu, false);
-    
-    auto setupSlider = [&](juce::Slider& slider, const juce::String& labelText, juce::Label& label)
+    auto setupRotarySlider = [&](juce::Slider& slider, juce::Label& label, const juce::String& labelText, const juce::String& paramID, std::unique_ptr<SliderAttachment>& attachment)
     {
         slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
         slider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
         addAndMakeVisible(slider);
+
         label.setText(labelText, juce::dontSendNotification);
         label.setJustificationType(juce::Justification::centred);
         label.attachToComponent(&slider, false);
         addAndMakeVisible(label);
+        
+        attachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, paramID, slider);
     };
 
-    addAndMakeVisible(adsrLabel);
-    adsrLabel.setText("ADSR Envelope", juce::dontSendNotification);
-    adsrLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(galacticEnvelopeLabel);
+    galacticEnvelopeLabel.setText("Galactic Envelope", juce::dontSendNotification);
+    galacticEnvelopeLabel.setJustificationType(juce::Justification::centred);
 
-    setupSlider(attackSlider, "Attack", attackLabel);
-    setupSlider(decaySlider, "Decay", decayLabel);
-    setupSlider(sustainSlider, "Sustain", sustainLabel);
-    setupSlider(releaseSlider, "Release", releaseLabel);
-    
-    attackAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "ATTACK", attackSlider);
-    decayAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "DECAY", decaySlider);
-    sustainAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "SUSTAIN", sustainSlider);
-    releaseAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "RELEASE", releaseSlider);
-    
-    auto setupHorizontalSlider = [&](juce::Slider& slider, juce::Label& label, const juce::String& text)
+    setupRotarySlider(attackSlider, attackLabel, "Attack", "ATTACK", attackAttachment);
+    setupRotarySlider(decaySlider, decayLabel, "Decay", "DECAY", decayAttachment);
+    setupRotarySlider(sustainSlider, sustainLabel, "Sustain", "SUSTAIN", sustainAttachment);
+    setupRotarySlider(releaseSlider, releaseLabel, "Release", "RELEASE", releaseAttachment);
+
+    auto setupHorizontalSlider = [&](juce::Slider& slider, juce::Label& label, const juce::String& labelText, const juce::String& paramID, std::unique_ptr<SliderAttachment>& attachment)
     {
         addAndMakeVisible(slider);
         slider.setSliderStyle(juce::Slider::LinearHorizontal);
         slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
         
         addAndMakeVisible(label);
-        label.setText(text, juce::dontSendNotification);
+        label.setText(labelText, juce::dontSendNotification);
         label.setJustificationType(juce::Justification::centred);
-        label.attachToComponent(&slider, true);
+
+        attachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, paramID, slider);
     };
-
-    setupHorizontalSlider(freqSlider, freqLabel, "Frequency");
-    setupHorizontalSlider(bassSlider, bassLabel, "Bass");
-    setupHorizontalSlider(pitchSlider, pitchLabel, "Pitch");
-
-    freqAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "FILTER_FREQ", freqSlider);
-    bassAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "BASS_GAIN", bassSlider);
-    pitchAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "PITCH", pitchSlider);
     
-    setSize (720, 720);
+    setupHorizontalSlider(freqSlider, freqLabel, "Frequency", "FILTER_FREQ", freqAttachment);
+    setupHorizontalSlider(bassSlider, bassLabel, "Bass", "BASS_GAIN", bassAttachment);
+    setupHorizontalSlider(blasterSlider, blasterLabel, "Blaster", "PITCH", blasterAttachment);
+
+    setSize (800, 600);
 }
 
 CantinaComposerAudioProcessorEditor::~CantinaComposerAudioProcessorEditor()
@@ -105,7 +99,6 @@ void CantinaComposerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboB
     if (comboBoxThatHasChanged == &presetMenu)
     {
         const int presetIndex = presetMenu.getSelectedId() - 1;
-        
         if (presetIndex >= 0)
         {
             audioProcessor.setPreset(presetIndex);
@@ -115,39 +108,43 @@ void CantinaComposerAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboB
 
 void CantinaComposerAudioProcessorEditor::resized()
 {
-    auto bounds = getLocalBounds().reduced(10);
+    auto bounds = getLocalBounds();
 
-    auto topRow = bounds.removeFromTop(40);
-    presetMenu.setBounds(topRow.removeFromLeft(topRow.getWidth() / 2).reduced(5));
-    waveMenu.setBounds(topRow.reduced(5));
+    titleLabel.setBounds(bounds.removeFromTop(40).reduced(5));
 
-    bounds.removeFromTop(20);
+    auto topArea = bounds.removeFromTop(50);
+    presetMenu.setBounds(topArea.removeFromLeft(topArea.getWidth() / 2).reduced(10));
+    waveMenu.setBounds(topArea.reduced(10));
 
-    auto adsrArea = bounds.removeFromTop(120);
-    adsrLabel.setBounds(adsrArea.removeFromTop(25));
-    
+    auto contentArea = bounds.removeFromTop(250);
+    auto leftColumn = contentArea.removeFromLeft(contentArea.getWidth() / 2);
+    auto rightColumn = contentArea;
+
+    galacticEnvelopeLabel.setBounds(leftColumn.removeFromTop(30));
+    auto adsrArea = leftColumn;
     auto sliderWidth = adsrArea.getWidth() / 4;
-    attackSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
-    decaySlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
-    sustainSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
-    releaseSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(10));
+    attackSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(15));
+    decaySlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(15));
+    sustainSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(15));
+    releaseSlider.setBounds(adsrArea.removeFromLeft(sliderWidth).reduced(15));
 
-    bounds.removeFromTop(20);
+    rightColumn.reduce(10, 0);
+    auto horizontalSliderHeight = 60;
+    int labelWidth = 80;
 
-    auto bottomArea = bounds;
-    auto horizontalSliderHeight = 50;
-    auto labelWidth = 80;
+    auto blasterArea = rightColumn.removeFromTop(horizontalSliderHeight);
+    blasterLabel.setBounds(blasterArea.removeFromLeft(labelWidth));
+    blasterSlider.setBounds(blasterArea);
 
-    auto freqArea = bottomArea.removeFromTop(horizontalSliderHeight);
-    freqSlider.setBounds(freqArea.withLeft(labelWidth).reduced(5, 0));
+    auto bassArea = rightColumn.removeFromTop(horizontalSliderHeight);
+    bassLabel.setBounds(bassArea.removeFromLeft(labelWidth));
+    bassSlider.setBounds(bassArea);
 
-    auto bassArea = bottomArea.removeFromTop(horizontalSliderHeight);
-    bassSlider.setBounds(bassArea.withLeft(labelWidth).reduced(5, 0));
-    
-    auto pitchArea = bottomArea.removeFromTop(horizontalSliderHeight);
-    pitchSlider.setBounds(pitchArea.withLeft(labelWidth).reduced(5, 0));
+    auto freqArea = rightColumn.removeFromTop(horizontalSliderHeight);
+    freqLabel.setBounds(freqArea.removeFromLeft(labelWidth));
+    freqSlider.setBounds(freqArea);
 
-
-    bottomArea.removeFromTop(10);
-    waveformVisualizer->setBounds(bottomArea);
+    auto previewArea = bounds;
+    waveformVisualizerLeft->setBounds(previewArea.removeFromLeft(previewArea.getWidth() / 2).reduced(10));
+    waveformVisualizerRight->setBounds(previewArea.reduced(10));
 }
