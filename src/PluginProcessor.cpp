@@ -29,6 +29,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout CantinaComposerAudioProcesso
     params.push_back (std::make_unique<juce::AudioParameterFloat> ("FILTER_FREQ", "Frequency", juce::NormalisableRange<float>(20.0f, 20000.0f, 1.0f, 0.3f), 20000.0f));
     params.push_back (std::make_unique<juce::AudioParameterFloat> ("BASS_GAIN", "Bass", juce::NormalisableRange<float>(-24.0f, 24.0f, 0.1f), 0.0f)); 
     params.push_back(std::make_unique<juce::AudioParameterFloat>("PITCH", "Pitch", juce::NormalisableRange<float>(-12.0f, 12.0f, 0.1f), 0.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_ROOM_SIZE", "Chamber Size", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_WET_LEVEL", "Distance", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.33f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_DAMPING", "Damping", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_WIDTH", "Width", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
     return { params.begin(), params.end() };
 }
 
@@ -50,6 +54,8 @@ void CantinaComposerAudioProcessor::prepareToPlay (double sampleRate, int sample
     spec.numChannels = getTotalNumOutputChannels();
     filterChain.prepare(spec);
     smoothedFilterFreq.reset(sampleRate, 0.05);
+
+    reverb.prepare(spec);
     
     updateFilters();
 
@@ -72,6 +78,15 @@ void CantinaComposerAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     
     juce::dsp::AudioBlock<float> block (buffer);
     filterChain.process(juce::dsp::ProcessContextReplacing<float>(block));
+    reverbParams.roomSize = apvts.getRawParameterValue("REVERB_ROOM_SIZE")->load();
+    reverbParams.wetLevel = apvts.getRawParameterValue("REVERB_WET_LEVEL")->load();
+    reverbParams.dryLevel = 1.0f - reverbParams.wetLevel;
+    reverbParams.damping = apvts.getRawParameterValue("REVERB_DAMPING")->load();
+    reverbParams.width = apvts.getRawParameterValue("REVERB_WIDTH")->load();
+    reverb.setParameters(reverbParams);
+    
+    reverb.process(juce::dsp::ProcessContextReplacing<float>(block));
+
     audioBufferQueue.push(buffer);
 }
 

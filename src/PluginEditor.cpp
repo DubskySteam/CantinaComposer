@@ -80,7 +80,16 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
     setupHorizontalSlider(bassSlider, bassLabel, "Bass", "BASS_GAIN", bassAttachment);
     setupHorizontalSlider(blasterSlider, blasterLabel, "Blaster", "PITCH", blasterAttachment);
 
-    setSize (800, 600);
+    addAndMakeVisible(spaceWobblerLabel);
+    spaceWobblerLabel.setText("Space Wobbler", juce::dontSendNotification);
+    spaceWobblerLabel.setJustificationType(juce::Justification::centred);
+
+    setupRotarySlider(chamberSlider, chamberLabel, "Chamber Size", "REVERB_ROOM_SIZE", chamberAttachment);
+    setupRotarySlider(distanceSlider, distanceLabel, "Distance", "REVERB_WET_LEVEL", distanceAttachment);
+    setupRotarySlider(dampingSlider, dampingLabel, "Damping", "REVERB_DAMPING", dampingAttachment);
+    setupRotarySlider(widthSlider, widthLabel, "Width", "REVERB_WIDTH", widthAttachment);
+
+    setSize (800, 680);
 }
 
 CantinaComposerAudioProcessorEditor::~CantinaComposerAudioProcessorEditor()
@@ -143,6 +152,15 @@ void CantinaComposerAudioProcessorEditor::resized()
     auto freqArea = rightColumn.removeFromTop(horizontalSliderHeight);
     freqLabel.setBounds(freqArea.removeFromLeft(labelWidth));
     freqSlider.setBounds(freqArea);
+
+    auto effectsArea = bounds.removeFromTop(100);
+    spaceWobblerLabel.setBounds(effectsArea.removeFromTop(30));
+    
+    auto effectSliderWidth = effectsArea.getWidth() / 4;
+    chamberSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
+    distanceSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
+    dampingSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
+    widthSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
 
     auto previewArea = bounds;
     waveformVisualizerLeft->setBounds(previewArea.removeFromLeft(previewArea.getWidth() / 2).reduced(10));

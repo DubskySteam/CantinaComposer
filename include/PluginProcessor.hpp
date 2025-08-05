@@ -48,6 +48,9 @@ private:
     juce::LinearSmoothedValue<float> smoothedFilterFreq;
     void updateFilters();
 
+    juce::dsp::Reverb reverb;
+    juce::dsp::Reverb::Parameters reverbParams;
+
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CantinaComposerAudioProcessor)
