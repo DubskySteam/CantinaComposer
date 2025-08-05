@@ -33,6 +33,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CantinaComposerAudioProcesso
     params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_WET_LEVEL", "Distance", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.33f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_DAMPING", "Damping", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("REVERB_WIDTH", "Width", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("JIZZ_GOBBLER_AMOUNT", "Intensity", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.0f));
     return { params.begin(), params.end() };
 }
 
@@ -86,6 +87,36 @@ void CantinaComposerAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     reverb.setParameters(reverbParams);
     
     reverb.process(juce::dsp::ProcessContextReplacing<float>(block));
+
+    float gobblerAmount = apvts.getRawParameterValue("JIZZ_GOBBLER_AMOUNT")->load();
+
+    if (gobblerAmount > 0.0f)
+    {
+        float bitDepth = juce::jmap(gobblerAmount, 0.0f, 1.0f, 16.0f, 4.0f);
+        float drive = juce::jmap(gobblerAmount, 0.0f, 1.0f, 1.0f, 5.0f); 
+
+        float numBitLevels = std::pow(2.0f, bitDepth);
+
+        for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        {
+            auto* channelData = buffer.getWritePointer(channel);
+
+            for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+            {
+                float currentSample = channelData[sample];
+       
+                currentSample *= drive;
+                currentSample = std::tanh(currentSample);
+
+                float totalLevels = numBitLevels;
+                float scaledSample = (currentSample * 0.5f + 0.5f) * totalLevels;
+                float quantizedSample = std::floor(scaledSample);
+                float crushedSample = (quantizedSample / totalLevels - 0.5f) * 2.0f;
+                
+                channelData[sample] = crushedSample;
+            }
+        }
+    }
 
     audioBufferQueue.push(buffer);
 }

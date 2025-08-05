@@ -44,5 +44,9 @@ private:
     juce::Label spaceWobblerLabel, chamberLabel, distanceLabel, dampingLabel, widthLabel;
     std::unique_ptr<SliderAttachment> chamberAttachment, distanceAttachment, dampingAttachment, widthAttachment;
 
+    juce::Slider jizzGobblerSlider;
+    juce::Label jizzGobblerLabel;
+    std::unique_ptr<SliderAttachment> jizzGobblerAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CantinaComposerAudioProcessorEditor)
 };

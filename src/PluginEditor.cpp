@@ -89,7 +89,16 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor (Cantin
     setupRotarySlider(dampingSlider, dampingLabel, "Damping", "REVERB_DAMPING", dampingAttachment);
     setupRotarySlider(widthSlider, widthLabel, "Width", "REVERB_WIDTH", widthAttachment);
 
-    setSize (800, 680);
+    addAndMakeVisible(jizzGobblerSlider);
+    jizzGobblerSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    jizzGobblerSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+    jizzGobblerAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, "JIZZ_GOBBLER_AMOUNT", jizzGobblerSlider);
+
+    addAndMakeVisible(jizzGobblerLabel);
+    jizzGobblerLabel.setText("Jizz Gobbler", juce::dontSendNotification);
+    jizzGobblerLabel.setJustificationType(juce::Justification::centred);
+
+    setSize (800, 760);
 }
 
 CantinaComposerAudioProcessorEditor::~CantinaComposerAudioProcessorEditor()
@@ -153,14 +162,19 @@ void CantinaComposerAudioProcessorEditor::resized()
     freqLabel.setBounds(freqArea.removeFromLeft(labelWidth));
     freqSlider.setBounds(freqArea);
 
-    auto effectsArea = bounds.removeFromTop(100);
-    spaceWobblerLabel.setBounds(effectsArea.removeFromTop(30));
-    
-    auto effectSliderWidth = effectsArea.getWidth() / 4;
-    chamberSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
-    distanceSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
-    dampingSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
-    widthSlider.setBounds(effectsArea.removeFromLeft(effectSliderWidth).reduced(15));
+    auto effectsArea = bounds.removeFromTop(180);
+
+    auto wobblerArea = effectsArea.removeFromTop(100);
+    spaceWobblerLabel.setBounds(wobblerArea.removeFromTop(30));
+    auto effectSliderWidth = wobblerArea.getWidth() / 4;
+    chamberSlider.setBounds(wobblerArea.removeFromLeft(effectSliderWidth).reduced(15));
+    distanceSlider.setBounds(wobblerArea.removeFromLeft(effectSliderWidth).reduced(15));
+    dampingSlider.setBounds(wobblerArea.removeFromLeft(effectSliderWidth).reduced(15));
+    widthSlider.setBounds(wobblerArea.removeFromLeft(effectSliderWidth).reduced(15));
+
+    auto gobblerArea = effectsArea;
+    jizzGobblerLabel.setBounds(gobblerArea.removeFromTop(30));
+    jizzGobblerSlider.setBounds(gobblerArea.reduced(20, 0));
 
     auto previewArea = bounds;
     waveformVisualizerLeft->setBounds(previewArea.removeFromLeft(previewArea.getWidth() / 2).reduced(10));
