@@ -27,9 +27,16 @@ bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
 void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound*, int)
 {
     if (!isPrepared) return;
-    
+
     updateADSR();
-    osc.setFrequency(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber), true);
+
+    double baseFrequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+
+    float pitchOffset = apvts.getRawParameterValue("PITCH")->load();
+
+    double finalFrequency = baseFrequency * std::pow(2.0, pitchOffset / 12.0);
+
+    osc.setFrequency(finalFrequency, true);
     level = velocity * 0.15f;
     adsr.noteOn();
 }
