@@ -42,8 +42,8 @@ cpmaddpackage(
 juce_add_plugin(
   ${PROJECT_NAME}
   COMPANY_NAME "CantinaComposer"
-  IS_SYNTH FALSE
-  NEEDS_MIDI_INPUT FALSE
+  IS_SYNTH TRUE
+  NEEDS_MIDI_INPUT TRUE
   NEEDS_MIDI_OUTPUT FALSE
   PLUGIN_MANUFACTURER_CODE Nnja
   PLUGIN_CODE Nnja
@@ -58,6 +58,10 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         src/PluginEditor.cpp
         src/PluginProcessor.cpp
+        src/SynthVoice.cpp
+        src/UI/CustomLookAndFeel.cpp
+        src/UI/WaveformVisualizer.cpp
+        src/UI/StaticWaveformVisualizer.cpp
 )
 
 #-------------------------------------------------------------------
@@ -66,6 +70,7 @@ target_sources(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/UI
 )
 
 #-------------------------------------------------------------------
@@ -74,6 +79,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         juce::juce_audio_utils
+        juce::juce_dsp
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
@@ -91,4 +97,4 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 # Plugin install
 #-------------------------------------------------------------------
 include(cmake/InstallVST3.cmake)
-install_vst3_bundle(${PROJECT_NAME})
+install_plug(${PROJECT_NAME})
