@@ -2,6 +2,7 @@
 #include "PluginProcessor.hpp"
 #include "CustomLookAndFeel.hpp"
 #include "WaveformVisualizer.hpp"
+#include "StaticWaveformVisualizer.hpp"
 
 /**
  * @class CantinaComposerAudioProcessorEditor
@@ -48,7 +49,7 @@ private:
     juce::Label titleLabel;
 
     /// @brief The live waveform visualizers.
-    std::unique_ptr<WaveformVisualizer> waveformVisualizerLeft;
+    std::unique_ptr<StaticWaveformVisualizer> staticWaveformVisualizer;
     std::unique_ptr<WaveformVisualizer> waveformVisualizerRight;
 
     /// @brief UI controls for preset and waveform selection.

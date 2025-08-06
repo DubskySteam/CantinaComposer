@@ -15,8 +15,8 @@ CantinaComposerAudioProcessorEditor::CantinaComposerAudioProcessorEditor(Cantina
     titleLabel.setJustificationType(juce::Justification::centred);
 
     // --- Waveform Visualizers ---
-    waveformVisualizerLeft = std::make_unique<WaveformVisualizer>(audioProcessor.audioBufferQueue);
-    addAndMakeVisible(waveformVisualizerLeft.get());
+    staticWaveformVisualizer = std::make_unique<StaticWaveformVisualizer>(audioProcessor.apvts);
+    addAndMakeVisible(staticWaveformVisualizer.get());
     waveformVisualizerRight = std::make_unique<WaveformVisualizer>(audioProcessor.audioBufferQueue);
     addAndMakeVisible(waveformVisualizerRight.get());
 
@@ -183,6 +183,6 @@ void CantinaComposerAudioProcessorEditor::resized()
 
     // The rest of the space at the bottom is for the live previews.
     auto previewArea = bounds;
-    waveformVisualizerLeft->setBounds(previewArea.removeFromLeft(previewArea.getWidth() / 2).reduced(10));
+    staticWaveformVisualizer->setBounds(previewArea.removeFromLeft(previewArea.getWidth() / 2).reduced(10));
     waveformVisualizerRight->setBounds(previewArea.reduced(10));
 }

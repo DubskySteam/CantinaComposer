@@ -61,6 +61,7 @@ target_sources(${PROJECT_NAME}
         src/SynthVoice.cpp
         src/UI/CustomLookAndFeel.cpp
         src/UI/WaveformVisualizer.cpp
+        src/UI/StaticWaveformVisualizer.cpp
 )
 
 #-------------------------------------------------------------------
